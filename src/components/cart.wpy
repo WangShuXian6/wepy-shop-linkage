@@ -1,0 +1,50 @@
+<style lang="less">
+
+</style>
+<template>
+  <view class="cart">
+    <view>num:{{all.totalNum}}--price:{{all.totalPrice}}</view>
+    <view @tap="clearCart">清空购物车</view>
+  </view>
+</template>
+<script>
+  import wepy from 'wepy'
+  import {connect} from 'wepy-redux'
+  import {CLEARCART} from '../store/types'
+
+  @connect({
+    all(state) {
+      let all = {totalNum: 0, totalPrice: 0}
+      if (Object.keys(state.cartControl).length > 0) {
+        for (let item in state.cartControl) {
+          if (item) {
+            state.cartControl[item].forEach((every, index, array) => {
+              all.totalNum += every.num
+              all.totalPrice += every.num * every.price
+            })
+          }
+        }
+      }
+      return all
+    }
+  }, {
+    clearCart:CLEARCART
+  })
+
+  export default class Cart extends wepy.component {
+    props = {}
+
+    data = {}
+    computed = {}
+
+    events = {}
+
+    watch = {}
+
+    methods = {}
+
+    onLoad() {
+
+    }
+  }
+</script>

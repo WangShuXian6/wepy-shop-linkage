@@ -1,0 +1,208 @@
+<style lang="less">
+  .container {
+    width: 100%;
+    height: 100%;
+    .carousel {
+      width: 100%;
+      height: 5rem;
+      background-color: pink;
+      color: #ff3dd6;
+    }
+    .scrollNav {
+      position: sticky;
+      top: 0;
+      display: inline-block;
+      vertical-align: top;
+      margin-top: 0;
+      width: 30%;
+      background-color: yellow;
+      .scrollWrapperNav {
+        height: 80vh;
+        .navItem {
+          display: inline-block;
+          width: 100%;
+          height: 6rem;
+          color: red;
+          background-color: cadetblue;
+        }
+        .active {
+          color: antiquewhite;
+          background-color: #9ba09e;
+        }
+      }
+
+    }
+    .scroll {
+      position: sticky;
+      top: 0;
+      //left:30%;
+      display: inline-block;
+      vertical-align: top;
+      width: 70%;
+      background-color: aquamarine;
+      .scrollWrapper {
+        height: 80vh;
+        .list {
+          display: inline-block;
+          width: 100%;
+          background-color: beige;
+          .categoryName {
+            width: 100%;
+            height: 2rem;
+            color: #e4f5ff;
+            background-color: #a03080;
+          }
+          .items {
+            width: 100%;
+            .item {
+              width: 100%;
+              height: 3rem;
+              background-color: #62cfe2;
+            }
+          }
+        }
+      }
+    }
+    & > .cart {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 20vh;
+      background-color: antiquewhite;
+    }
+  }
+</style>
+<template>
+  <view class="container">
+    <!--<view class="carousel">carousel</view>-->
+    <view class="scrollNav">
+      <scroll-view scroll-y class="scrollWrapperNav"
+                   scroll-with-animation="true"
+                   scroll-into-view="{{scroll.activateNavgationId}}">
+        <repeat class="listIn" for="{{order}}" key="key" index="index" item="items">
+          <view @tap="scrollInto({{items.scrollId}},{{items.navId}})"
+                class="{{scroll.activateNavgationId===items.navId ? 'navItem active':'navItem'}}"
+                id="{{items.navId}}">{{items.category}}
+          </view>
+        </repeat>
+      </scroll-view>
+    </view>
+    <view class="scroll">
+      <scroll-view scroll-y class="scrollWrapper"
+                   scroll-with-animation="true"
+                   scroll-into-view="{{scroll.scrollIntoViewId}}">
+        <view class="list">
+          <repeat class="listIn" for="{{order}}" key="key" index="index" item="items">
+            <view class="categoryName" id="{{items.scrollId}}" data-navId="{{items.navId}}">{{items.category}}</view>
+            <view class="items">
+              <repeat class="itemsIn" for="{{items.list}}" key="itemKey" index="itemIndex" item="item">
+                <view class="item">
+                  <view class="name">{{item.name}}-{{item.sold_out}}-{{item.is_set_meal}}</view>
+                  <cartControl class="cartControl"
+                               :itemIndex="itemIndex"
+                               :category="items.category"
+                               :sold_out="item.sold_out"
+                               :is_set_meal="item.is_set_meal"
+                               :price="item.price"
+                               :id.sync="item.id"/>
+                </view>
+              </repeat>
+            </view>
+          </repeat>
+        </view>
+      </scroll-view>
+    </view>
+    <cart class="cart"/>
+  </view>
+</template>
+
+<script>
+  import wepy from 'wepy'
+  import {connect} from 'wepy-redux'
+  import CartControl from '../components/cartControl'
+  import Cart from '../components/cart'
+  import {asyncRequestProducts} from '../store/actions/products'
+  import {products} from '../api/product'
+  import {UPDATE_SCROLL} from '../store/types/index'
+  //import {REQUEST_PRODUCTS} from '../store/types/index'
+
+  @connect({
+    order(state) {
+      return state.products
+    },
+    cartControl(state) {
+      return state.cartControl
+    },
+    scroll(state) {
+      return state.scroll
+    }
+  }, {
+    asyncRequestProducts,
+    updateScroll: UPDATE_SCROLL
+  })
+
+  export default class Index extends wepy.page {
+    config = {
+      navigationBarTitleText: 'test'
+    }
+    components = {
+      cartControl: CartControl,
+      cart: Cart
+    }
+
+    mixins = []
+
+    data = {}
+
+    computed = {}
+
+    methods = {
+      scrollInto(scrollId, navId) {
+        console.log('scrollId', scrollId)
+        console.log('navId', navId)
+        this.methods.updateScroll({
+          scrollObserveToggle: false,
+          scrollIntoViewId: scrollId,
+          activateNavgationId: navId
+        })
+        setTimeout(() => {
+          this.methods.updateScroll({
+            scrollObserveToggle: true,
+          })
+        }, 1000)
+      }
+    }
+
+    events = {}
+
+    onLoad() {
+      setTimeout(() => {
+        this.methods.asyncRequestProducts(products)
+        setTimeout(() => {
+          this.scrollObserver()
+        }, 1000)
+      }, 5000)
+    }
+
+    scrollObserver() {
+      if (this.order.length > 0) {
+        this.order.forEach((item, index, array) => {
+          wx.createIntersectionObserver().relativeToViewport({
+            top: 0,
+            bottom: -500
+          }).observe(`#${item.scrollId}`, (res) => {
+            if (this.scroll.scrollObserveToggle) {
+              console.log('res', res)
+              console.log('限制后的显示区域', item.navId)
+              this.methods.updateScroll({
+                scrollIntoViewId: '',
+                activateNavgationId: item.navId
+              })
+            }
+          })
+        })
+      }
+    }
+  }
+</script>
