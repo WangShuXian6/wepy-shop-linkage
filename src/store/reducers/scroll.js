@@ -1,8 +1,12 @@
 import {handleActions} from 'redux-actions'
-import {UPDATE_SCROLL} from '../types/index'
+import {UPDATE_SCROLL, UPDATE_SCROLL_ACTIVENAV} from '../types/index'
 
 export default handleActions({
   [UPDATE_SCROLL](state, action) {
+    return {...state, ...action.payload}
+  },
+  [UPDATE_SCROLL_ACTIVENAV](state, action) {
+    console.log('更新标记',action.payload)
     return {...state, ...action.payload}
   }
 }, {

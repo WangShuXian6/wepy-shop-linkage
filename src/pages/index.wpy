@@ -125,6 +125,7 @@
   import {asyncRequestProducts} from '../store/actions/products'
   import {products} from '../api/product'
   import {UPDATE_SCROLL} from '../store/types/index'
+  import {updateActiveNav} from '../store/actions'
   //import {REQUEST_PRODUCTS} from '../store/types/index'
 
   @connect({
@@ -139,7 +140,8 @@
     }
   }, {
     asyncRequestProducts,
-    updateScroll: UPDATE_SCROLL
+    updateScroll: UPDATE_SCROLL,
+    updateActiveNav
   })
 
   export default class Index extends wepy.page {
@@ -166,11 +168,17 @@
           scrollIntoViewId: scrollId,
           activateNavgationId: navId
         })
+        console.log('点击导航1', this.scroll)
+
+        this.methods.updateActiveNav({
+          scrollObserveToggle: true
+        })
+        console.log('点击导航2', this.scroll)
         setTimeout(() => {
-          this.methods.updateScroll({
-            scrollObserveToggle: true,
-          })
-        }, 1000)
+          console.log('点击导航3', this.scroll)
+        }, 2500)
+
+        //todo 此处有小bug，待优化，需改为异步action
       }
     }
 
@@ -186,6 +194,9 @@
     }
 
     scrollObserver() {
+      this.methods.updateActiveNav({
+        scrollObserveToggle: true
+      })
       if (this.order.length > 0) {
         this.order.forEach((item, index, array) => {
           wx.createIntersectionObserver().relativeToViewport({

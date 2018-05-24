@@ -5,12 +5,15 @@
   <view class="cart">
     <view>num:{{all.totalNum}}--price:{{all.totalPrice}}</view>
     <view @tap="clearCart">清空购物车</view>
+    <view @tap="asyncIncrementSelf">异步操作</view>
+    <view>异步显示:::{{asyncnum.num}}</view>
   </view>
 </template>
 <script>
   import wepy from 'wepy'
   import {connect} from 'wepy-redux'
-  import {CLEARCART} from '../store/types'
+  import {CLEARCART, ASYNC_INCREMENT} from '../store/types'
+  import {asyncIncrement} from '../store/actions'
 
   @connect({
     all(state) {
@@ -26,9 +29,13 @@
         }
       }
       return all
+    },
+    asyncnum(state) {
+      return state.asyncnum
     }
   }, {
-    clearCart:CLEARCART
+    clearCart: CLEARCART,
+    asyncIncrement
   })
 
   export default class Cart extends wepy.component {
@@ -41,7 +48,11 @@
 
     watch = {}
 
-    methods = {}
+    methods = {
+      asyncIncrementSelf() {
+        this.methods.asyncIncrement({num: 2})
+      }
+    }
 
     onLoad() {
 
